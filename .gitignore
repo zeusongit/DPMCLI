@@ -1,0 +1,64 @@
+# Ignore sensitive files
+*.key
+*.pem
+*.env
+*.log
+*.sql
+*.db
+*.sqlite
+*.db.backup
+*.bak
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+.aws/credentials
+.azure/credentials
+.gcp/credentials.json
+.crl
+.csr
+encryption.key
+*.ovpn
+.pac
+.svn/auth/
+
+# Ignore build and compiled files
+bin/
+obj/
+ 
+# Ignore IDE and editor files
+.idea/
+.vscode/
+.vs/
+
+
+# Ignore personal files
+launchSettings.json
+ 
+# Ignore deployment and configuration files
+ 
+# Ignore temporary files
+*.tmp
+ 
+# Ignore database backups
+*.bak
+ 
+# Ignore credentials
+credentials.json
+*.token
+*.auth
+*.oauth
+*.jwt
+*.enc
+*.encrypted
+private.key
+private.pem
+*.dbconfig
+*.dbcreds
+.service-account.json
+ 
+# Ignore keychain and credential manager files
+*.keychain
+*.credential
+*.credentials
