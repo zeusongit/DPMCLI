@@ -2,7 +2,7 @@
  Dynamo Package Manager CLI is a tool that let's the user interact with Dynamo Package Manager without any interface from terminal.
 
 ### Config file
- There is a config file that can be used to configure the app to point to a specific endpoint. This should be in the same directory as the executable.
+ There is a config file named `dpm.config` that can be used to configure the app to point to a specific endpoint. This should be in the same directory as the executable.
  These are the default values for the config file:
 ```
 {
@@ -14,7 +14,7 @@
 
  ## Usage
 
- Build the solution to get dpm.exe, this is the executable that will be used to run DPM commands and make sure you are in the same directory as the executable.
+ Build the solution to get dpm.exe or download the latest release from here: https://github.com/zeusongit/DPMCLI/releases/download/v1.0.0.0/DPMCLI_v1.0.0.0.zip, this is the executable that will be used to run DPM commands and make sure you are in the same directory as the executable.
 
  The commands have the following syntax:
 
