@@ -93,7 +93,6 @@ namespace DynamoPMCLI
             if (Enum.TryParse(arg, out Constants.L2_CLICommands flag))
             {
                 url = Constants.DPMSourceLink;
-                var value = Utils.GetFlagValue(args, flag);
                 switch (flag)
                 {
                     case Constants.L2_CLICommands.package:
