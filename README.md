@@ -108,5 +108,7 @@ Sample Package Metadata File:
 -f file
 -m metadata (pkg.json)
 
+```
 dpm.exe push package -u <username> -p <password> -cid "<clientid>" -tt <trust-token> --auto -f <path-to-package-zip-file> -m <path-to-pkg.json-file>
+```
 
