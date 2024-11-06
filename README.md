@@ -101,3 +101,12 @@ Sample Package Metadata File:
 
 `Note: If publish fails try logging out and re-login to refresh the token.`
 
+### Automation
+
+--auto flag can be used for automations, this will download the AutoSignIn Tool and IDSDK (if needed), and provided the correct credentials will post a package to the desired package manager server.
+
+-f file
+-m metadata (pkg.json)
+
+dpm.exe push package -u <username> -p <password> -cid "<clientid>" -tt <trust-token> --auto -f <path-to-package-zip-file> -m <path-to-pkg.json-file>
+

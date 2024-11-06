@@ -19,7 +19,7 @@
 
                 Utils.SetFlags(args.Skip(2));
                 Utils.SetConfigs(args);
-
+                Console.WriteLine("Using " + Constants.DPMSourceLink);
                 var command = args[0];
                 switch (command)
                 {

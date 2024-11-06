@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.VisualBasic;
 
@@ -10,6 +11,7 @@ namespace DynamoPMCLI
         {
             if (args.Count() < 1) return;
             var flags = args.Where(x => x.StartsWith("-") || x.StartsWith("--"));
+            Console.WriteLine("Setting flags...");
             foreach (var item in flags)
             {
                 string itm = string.Empty;
@@ -21,16 +23,22 @@ namespace DynamoPMCLI
                 {
                     itm = item.Replace("-", "");
                 }
-
                 if (Enum.TryParse(itm, out Constants.Flags_CLICommands flag))
                 {
-                    var value = GetFlagValue(args, flag);
-                    switch(flag)
+                    var value = GetFlagValue(args, item);
+                    switch (flag)
                     {
                         case Constants.Flags_CLICommands.v:
                         case Constants.Flags_CLICommands.verbose:
                             Constants.Print("Set to verbose");
                             Constants.IsVerbose = true;
+                            break;
+                        case Constants.Flags_CLICommands.server:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.Print("Server set to: " + value);
+                                Constants.DPMSourceLink = value;
+                            }
                             break;
                         case Constants.Flags_CLICommands.t:
                         case Constants.Flags_CLICommands.token:
@@ -46,6 +54,57 @@ namespace DynamoPMCLI
                             {
                                 Constants.CustomConfigPath = value;
                                 Constants.Log("Using custom config file: " + value);
+                            }
+                            break;
+                        case Constants.Flags_CLICommands.auto:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.IsAuto = true;
+                                Constants.Log("Set to use AutoSignIn Tool");
+                            }
+                            break;
+                        case Constants.Flags_CLICommands.cid:
+                        case Constants.Flags_CLICommands.clientid:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.ClientId = value;
+                            }
+                            break;
+                        case Constants.Flags_CLICommands.u:
+                        case Constants.Flags_CLICommands.user:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.User = value;
+                            }
+                            break;
+                        case Constants.Flags_CLICommands.p:
+                        case Constants.Flags_CLICommands.pwd:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.Pwd = value;
+                            }
+                            break;
+                        case Constants.Flags_CLICommands.tt:
+                        case Constants.Flags_CLICommands.trusttoken:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.TrustToken = value;
+                            }
+                            break;
+                        case Constants.Flags_CLICommands.f:
+                        case Constants.Flags_CLICommands.file:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.PackageFilePath = value;
+                                Constants.Log("Package at: " + value);
+                            }
+                            break;
+                        case Constants.Flags_CLICommands.m:
+                        case Constants.Flags_CLICommands.meta:
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                Constants.MetadataFilePath = value;
+                                Constants.Log("Metadata at: " + value);
                             }
                             break;
                     }
@@ -68,7 +127,7 @@ namespace DynamoPMCLI
             }
             return str;
         }
-        public static string GetFlagValue(IEnumerable<string> args, Enum flag)
+        public static string GetFlagValue(IEnumerable<string> args, string flag)
         {
             var argList = args.ToList();
             var index = argList.IndexOf(flag.ToString());
@@ -83,9 +142,9 @@ namespace DynamoPMCLI
                 Constants.Log("Loading configs.");
                 if (Constants.ConfigPath != null)
                 {
-                    LoadConfigs();
                     if (File.Exists(Constants.ConfigPath))
                     {
+                        LoadConfigs();
                         if (Constants.Config != null)
                         {
                             if (!string.IsNullOrEmpty(Constants.Config.Source))
@@ -116,14 +175,14 @@ namespace DynamoPMCLI
                     }
                     else 
                     {
-                        Constants.Print("Could not find config file.");
+                        Constants.Print("Config file not found");
                     }
                 }
             }
             catch (Exception e)
             {
                 Constants.Print("Failed while loading configs");
-                Constants.Print("Package Manager Source set to default: " + Constants.DPMSourceLink);
+                Constants.Print("Package Manager Source set as: " + Constants.DPMSourceLink);
                 Constants.Log(e.Message);
             }
         }

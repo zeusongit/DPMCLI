@@ -27,7 +27,6 @@ namespace DynamoPMCLI
         internal string MakeRequest(RequestInfo req)
         {
             Stopwatch sw = new Stopwatch();
-            SpinAnimation.Start(100);
             sw.Start();
             try
             {
@@ -38,7 +37,7 @@ namespace DynamoPMCLI
                 {
                     return string.Empty;
                 }
-
+                Constants.Print("--Initiating package request to service..");
                 Constants.Log("Making request to: " + url);
                 if (type == HttpMethod.Get)
                 {
@@ -67,14 +66,13 @@ namespace DynamoPMCLI
             catch (Exception ex)
             {
                 Constants.Print("Failed to make request.");
-                Constants.Log(ex.Message);
+                Constants.Print(ex.Message);
                 Constants.Log(ex.StackTrace);
                 return string.Empty;
             }
             finally
             {
                 sw.Stop();
-                SpinAnimation.Stop();
                 Constants.Print("Request completed in :" + sw.ElapsedMilliseconds + "ms");
             }
         }
@@ -102,15 +100,16 @@ namespace DynamoPMCLI
 
         private async Task<string> ProcessAsyncGetRequest(RequestInfo req)
         {
-            var json = await client.GetStringAsync(req.Url);
-            return json;
+            var res = await client.GetAsync(req.Url);
+            return await res.Content.ReadAsStringAsync();
         }
-        private async Task<string> ProcessAsyncUpdateRequest(RequestInfo req)
+        private async Task<string?> ProcessAsyncUpdateRequest(RequestInfo req)
         {
 
             if (!string.IsNullOrEmpty(req.PackagePath))
             {
-                var hashed_pkg_meta = GetPackageMetadataWithHash(req);
+                var hashed_pkg_meta = GetPackageMetadataWithHash(req)?.ToString();
+                if (string.IsNullOrEmpty(hashed_pkg_meta)) return null;
                 using (MultipartFormDataContent content = new MultipartFormDataContent())
                 {
                     using (var fileStream = File.OpenRead(req.PackagePath))
@@ -120,11 +119,23 @@ namespace DynamoPMCLI
                         content.Add(fileContent, "pkg", Path.GetFileName(req.PackagePath));
                         content.Add(new StringContent(hashed_pkg_meta), "pkg_header");
 
-                        using (var response = await client.PostAsync(req.Url, content))
+                        if (req.Method == HttpMethod.Post)
                         {
-                            //response.EnsureSuccessStatusCode();
-                            return await response.Content.ReadAsStringAsync();
+                            using (var response = await client.PostAsync(req.Url, content))
+                            {
+                                //response.EnsureSuccessStatusCode();
+                                return await response.Content.ReadAsStringAsync();
+                            }
                         }
+                        else if (req.Method == HttpMethod.Put)
+                        {
+                            using (var response = await client.PutAsync(req.Url, content))
+                            {
+                                //response.EnsureSuccessStatusCode();
+                                return await response.Content.ReadAsStringAsync();
+                            }
+                        }
+                        return null;
                     }
                 }
             }
@@ -133,7 +144,7 @@ namespace DynamoPMCLI
             }
 
         }
-        private string GetPackageMetadataWithHash(RequestInfo req)
+        internal JObject GetPackageMetadataWithHash(RequestInfo req)
         {
             var hash = string.Empty;
             using (var fileStream = File.OpenRead(req.PackagePath))
@@ -147,8 +158,8 @@ namespace DynamoPMCLI
                 var pkg_meta = metaStream.ReadToEnd();
                 var jObject = JObject.Parse(pkg_meta);
                 jObject["file_hash"] = @"" + hash + @"";
-                Constants.Print("Metadata: " + jObject.ToString());
-                return jObject.ToString();
+                Constants.Log(Environment.NewLine + "Metadata: " + jObject.ToString());
+                return jObject;
             }
         }
         private string GetSHA256Hash(FileStream file)

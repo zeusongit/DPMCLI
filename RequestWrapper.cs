@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace DynamoPMCLI
 {
@@ -26,7 +27,7 @@ namespace DynamoPMCLI
             if (Enum.TryParse(arg, out Constants.L2_CLICommands flag))
             {
                 url = Constants.DPMSourceLink;
-                var value = Utils.GetFlagValue(args, flag);
+                var value = Utils.GetFlagValue(args, flag.ToString());
                 switch (flag)
                 {
                     case Constants.L2_CLICommands.package:
@@ -84,7 +85,6 @@ namespace DynamoPMCLI
 
         internal void HandleUpdateRequests(string[] args)
         {
-            Constants.Log("Updating data");
             string url = string.Empty;
             string path = string.Empty;
             string metapath = string.Empty;
@@ -96,24 +96,85 @@ namespace DynamoPMCLI
                 switch (flag)
                 {
                     case Constants.L2_CLICommands.package:
+                        path = Constants.PackageFilePath;
+                        metapath = Constants.MetadataFilePath;
+                        if (Constants.IsAuto)
+                        {
+                            authManager.InitiateAutoSignIn();
+                        }
                         url += "/" + nameof(Constants.L2_CLICommands.package);
-                        path = args[2];
-                        metapath = args[3];
                         break;
                 }
             }
 
-            if (!string.IsNullOrEmpty(url))
+            try
             {
-                var req = new RequestInfo(url, HttpMethod.Post,true);
-                if (!string.IsNullOrEmpty(path))
+                if (!string.IsNullOrEmpty(url))
                 {
-                    req.PackagePath = path;
-                    req.PackageMetadataPath = metapath;
+                    var req = new RequestInfo(url, HttpMethod.Post, true);
+                    if (!string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(metapath))
+                    {
+                        req.PackagePath = path;
+                        req.PackageMetadataPath = metapath;
+                        if (ShouldPublishVersion(req))
+                        {
+                            req.Method = HttpMethod.Put;
+                        }
+                        else 
+                        {
+                            Constants.Print("Could not find any existing package, publishing a new package..");
+                        }
+                    }
+                    else
+                    {
+                        Constants.Print("Metadata or Package file paths missing.");
+                    }
+                    var response = http.MakeRequest(req);
+                    Constants.PrintResponse(response);
                 }
-                var response = http.MakeRequest(req);
-                Constants.PrintResponse(response);
             }
+            catch (Exception ex)
+            {
+                Constants.Print("Failed to update Package. "+ ex.Message);
+            }
+        }
+
+        private bool ShouldPublishVersion(RequestInfo req)
+        {
+            try
+            {
+                var meta = http.GetPackageMetadataWithHash(req);
+                if (meta != null && meta["name"] != null)
+                {
+                    Constants.Print("Checking if package with name " + meta["name"].ToString() + " already exist..");
+                    var url = Constants.DPMSourceLink;
+                    url += "/" + nameof(Constants.L2_CLICommands.package) + "/dynamo/" + meta["name"].ToString();
+                    var response = http.MakeRequest(new RequestInfo(url));
+                    if (!string.IsNullOrEmpty(response))
+                    {
+                        var resp = JObject.Parse(response);
+                        if (resp != null && resp["success"] != null && resp["content"] != null && resp["content"]["name"] != null)
+                        {
+                            var pkgExist = resp["success"].ToString() == "True" && resp["content"]["name"].ToString() == meta["name"].ToString();
+                            if (pkgExist)
+                            {
+                                Constants.Print("Package found, publishing new version (" + meta["version"].ToString() + ")");
+                                return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Unable to validate if the package exist.");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return false;
         }
 
         #region local helper methods

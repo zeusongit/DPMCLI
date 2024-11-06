@@ -11,9 +11,25 @@ namespace DynamoPMCLI
         public static bool IsVerbose { get; set; }
         public static bool SkipPrompts { get; set; }
         public static bool IsAuthenticated { get; set; }
-        private static string dpmSourceLink = DefaultDPMSource;
+        public static bool IsAuto { get; set; }
+
+        public static string User =string.Empty;
+        public static string Pwd = string.Empty;
+        public static string ClientId = string.Empty;
+        public static string TrustToken = string.Empty;
+        public static string MetadataFilePath = string.Empty;
+        public static string PackageFilePath = string.Empty;
+
+
+        private static string dpmSourceLink = string.Empty;
         public static string DPMSourceLink {
-            get { return dpmSourceLink; }
+            get {
+                if (string.IsNullOrEmpty(dpmSourceLink))
+                {
+                    return DefaultDPMSource;
+                }
+                return dpmSourceLink; 
+            }
             set 
             {
                 if (!string.IsNullOrEmpty(value))
@@ -71,6 +87,21 @@ namespace DynamoPMCLI
             token,
             c,
             config,
+            a,
+            auto,
+            u,
+            user,
+            p,
+            pwd,
+            cid,
+            clientid,
+            tt,
+            trusttoken,
+            f,
+            file,
+            m,
+            meta,
+            server,
         }
         public enum ConfigKeys
         {
@@ -108,6 +139,8 @@ namespace DynamoPMCLI
             {
                 return;
             }
+            Console.WriteLine("");
+            Console.WriteLine("---------------------Response");
             Console.WriteLine(PrintJson(json));
         }
 
